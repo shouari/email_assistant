@@ -20,7 +20,6 @@ def speak(text):
 def listen():
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        speak("Say something")
         audio_text = r.listen(source)
         time.sleep(2)
 
@@ -29,5 +28,3 @@ def listen():
             print(f"You said: {text}")
         except:
             speak("Sorry, I didn't get that")
-
-listen()

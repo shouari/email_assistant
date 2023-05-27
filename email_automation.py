@@ -1,5 +1,5 @@
 from __future__ import print_function
-from voice import speak
+from voice import speak, listen
 
 import os.path
 
@@ -52,7 +52,7 @@ def search_messages(service, label, q=None):
 
 
 def delete_spam(service, label, q=None):
-    messages_to_delete = search_messages(service, label)
+    messages_to_delete = search_messages(service, label='SPAM')
     return service.users().messages().batchDelete(
         userId = 'me',
         body = {
@@ -63,23 +63,6 @@ def delete_spam(service, label, q=None):
 service = gmail_authenticate()
 label='SPAM'
 
-# Check if lable exists
-
-# results = service.users().labels().list(userId='me').execute()
-# labels = results.get('labels', [])
-#
-# if not labels:
-#     print('No labels found.')
-# for i in labels:
-#     if i["name"] == label:
-#         if input('Correct lable, do you want to to delete the content: Y/N? \n') == "Y":
-#             delete_message(service, label)
-#
-#     else:
-#         print("lable entered not found")
-
-
-# Deleting messages
 
 messages = search_messages(service, label)
 if len(messages) == 0:
@@ -88,7 +71,7 @@ else:
     speak("there are spams!!, we delete them")
     delete_spam(service, label)
 
-
+spe
 
 
 
