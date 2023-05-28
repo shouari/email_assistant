@@ -1,4 +1,10 @@
 from __future__ import print_function
+
+import base64
+import os.path
+
+from base64 import urlsafe_b64decode
+
 from google_authenticate import gmail_authenticate
 
 service = gmail_authenticate()
@@ -36,24 +42,36 @@ results = service.users().labels().list(userId='me').execute()
 labels = results.get('labels', [])
 
 
-if not labels:
-    print('No labels found.')
-for i in labels:
-        print(i['name'])
+# if not labels:
+#     print('No labels found.')
+# for i in labels:
+#         print(i['name'])
 
 
 # Deleting messages
 
 messages = search_messages(service, label= 'INBOX',
                            q="in: category:primary is:unread" )
-print(len(messages))
-# if len(messages) =g= 0:
-#     speak("There are no spams")
-# else:
-#     speak("there are spams!!, we delete them")
-#     delete_spam(service, label)
 
+for message in messages:
+    msg =service.users().messages().get(userId='me',
+                                        id=message['id']).execute()
+    email_data = msg['payload']['headers']
+    for values in email_data:
+        name = values['name']
+        if name == 'From':
+            from_name = values['value']
+            for part in msg['payload']['parts']:
+                try:
+                    data = part['body']["data"]
+                    byte_code = base64.urlsafe_b64decode(data)
 
+                    text = byte_code.decode("utf-8")
+                    print("This is the message: " + str(text))
 
-
+                    # mark the message as read (optional)
+                    msg = service.users().messages().modify(userId='me', id=message['id'],
+                                                            body={'removeLabelIds': ['UNREAD']}).execute()
+                except BaseException as error:
+                    pass
 
