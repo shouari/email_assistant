@@ -5,6 +5,8 @@ import os.path
 
 from base64 import urlsafe_b64decode
 
+import html2text
+
 from google_authenticate import gmail_authenticate
 
 service = gmail_authenticate()
@@ -52,26 +54,38 @@ labels = results.get('labels', [])
 
 messages = search_messages(service, label= 'INBOX',
                            q="in: category:primary is:unread" )
-
 for message in messages:
     msg =service.users().messages().get(userId='me',
                                         id=message['id']).execute()
+
     email_data = msg['payload']['headers']
     for values in email_data:
         name = values['name']
-        if name == 'From':
+        if name.lower() == 'from':
             from_name = values['value']
+            print(from_name)
+        if name == 'Subject':
+            subject = values['value']
             for part in msg['payload']['parts']:
-                try:
-                    data = part['body']["data"]
-                    byte_code = base64.urlsafe_b64decode(data)
-
-                    text = byte_code.decode("utf-8")
+                print(part)
+                # try:
+                mimeType = part['mimeType']
+                data = part['body']["data"]
+                byte_code = base64.urlsafe_b64decode(data)
+                if mimeType == 'text/plain':
+                    text = byte_code.decode()
+                    print("This is the from name: " + from_name)
                     print("This is the message: " + str(text))
+                elif mimeType == 'text/html':
+                    text = html2text.html2text(byte_code)
+                    print("This is htm")
+                    print(from_name)
+                    print(subject)
+                    print(str(text))
 
                     # mark the message as read (optional)
-                    msg = service.users().messages().modify(userId='me', id=message['id'],
-                                                            body={'removeLabelIds': ['UNREAD']}).execute()
-                except BaseException as error:
-                    pass
+                    # msg = service.users().messages().modify(userId='me', id=message['id'],
+                    #                                         body={'removeLabelIds': ['UNREAD']}).execute()
+                # except BaseException as error:
+                #     pass
 
